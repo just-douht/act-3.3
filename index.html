@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Trabajo 2 - Ejercicio DOM</title>
+<link rel="stylesheet" href="estilos.css">
+</head>
+<body onload="iniciar()" onkeydown="teclaGlobal(event)">
+
+<h1 id="titulo" tabindex="0">Registro de alumnos (Ejercicio DOM)</h1>
+<p id="parrafo">Pasa el mouse sobre el título, haz clic en este párrafo o presiona las teclas
+  <b>R</b> (rojo), <b>A</b> (azul), <b>N</b> (normal) en cualquier parte de la página.</p>
+<div id="zona"><span id="movil" style="position:absolute; left:0;">▶ Párrafo con posición (clic en el párrafo para moverlo)</span></div>
+<p id="msg"></p>
+
+<img id="foto" width="120" height="120" alt="Logo"
+  src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><rect width='120' height='120' fill='%234a90d9'/><text x='60' y='70' font-size='36' text-anchor='middle' fill='white'>DOM</text></svg>">
+<small>(Pasa el mouse para agrandar; doble clic para cambiar color)</small>
+
+<p><a id="enlace" href="https://developer.mozilla.org/es/docs/Web/API/Document_Object_Model" target="_blank">Documentación del DOM (MDN)</a></p>
+
+<h3>Lista de cursos (clic para marcar, doble clic para eliminar)</h3>
+<ul id="lista">
+  <li>HTML</li>
+  <li>CSS</li>
+  <li>JavaScript</li>
+</ul>
+<button id="btnLista">Cambiar estilo de lista</button>
+
+<h3>Formulario</h3>
+<form id="formulario">
+  <input type="text" id="nombre" placeholder="Nombre del alumno">
+  <input type="number" id="nota" placeholder="Calificación" min="0" max="10">
+  <select id="curso">
+    <option>HTML</option><option>CSS</option><option>JavaScript</option>
+  </select>
+  <label><input type="checkbox" id="acepto"> Acepto términos</label>
+  <button type="submit">Agregar</button>
+  <button type="reset">Limpiar</button>
+</form>
+<p>Vista previa mientras escribes: <b id="preview"></b></p>
+
+<table id="tabla">
+  <tr><th>Nombre</th><th>Calificación</th><th>Curso</th></tr>
+</table>
+<button id="btnBorde">Cambiar grosor de borde</button>
+
+<script>
+function iniciar() {                        // a) body onload
+  document.body.style.backgroundColor = "#eef6ff";
+  mostrar("Página cargada correctamente (onload)");
+}
+function mostrar(t) { document.getElementById("msg").textContent = t; }
+
+function teclaGlobal(e) {                   // a) teclado en body
+  const k = e.key.toLowerCase();
+  if (e.target.tagName === "INPUT") return;
+  if (k === "r") document.body.style.backgroundColor = "#ffdada";
+  if (k === "a") document.body.style.backgroundColor = "#dae6ff";
+  if (k === "n") document.body.style.backgroundColor = "#eef6ff";
+  mostrar("Tecla presionada: " + e.key);
+}
+
+// b) Encabezado y párrafo
+const titulo = document.getElementById("titulo");
+titulo.onmouseover = () => { titulo.style.color = "crimson"; titulo.style.fontSize = "36px"; };
+titulo.onmouseout  = () => { titulo.style.color = "black";   titulo.style.fontSize = "32px"; };
+titulo.onkeydown   = e => mostrar("Teclado en título: " + e.key);
+let desp = 0;
+document.getElementById("parrafo").onclick = () => {
+  desp = (desp + 40) % 400;
+  const m = document.getElementById("movil");
+  m.style.left = desp + "px";
+  m.style.color = desp % 80 ? "green" : "purple";
+  mostrar("Posición left = " + m.style.left);
+};
+
+// e) Imagen
+const foto = document.getElementById("foto");
+foto.onmouseover = () => { foto.style.width = "180px"; foto.style.height = "180px"; };
+foto.onmouseout  = () => { foto.style.width = "120px"; foto.style.height = "120px"; };
+foto.ondblclick  = () => { foto.style.border = "4px solid orange"; foto.style.opacity = foto.style.opacity == "0.5" ? "1" : "0.5"; };
+foto.onload = () => mostrar("Imagen cargada: " + foto.naturalWidth + "x" + foto.naturalHeight);
+foto.onerror = () => foto.alt = "No se pudo cargar";
+
+// d) Enlace
+const enlace = document.getElementById("enlace");
+enlace.onmouseover = () => { enlace.style.textDecoration = "underline"; enlace.style.color = "red"; };
+enlace.onmouseout  = () => { enlace.style.textDecoration = "none"; enlace.style.color = ""; };
+enlace.onclick = () => mostrar("Abriendo: " + enlace.href);
+
+// c) Lista
+const lista = document.getElementById("lista");
+lista.onclick = e => { if (e.target.tagName === "LI") { e.target.style.color = "green"; e.target.style.fontWeight = "bold"; } };
+lista.ondblclick = e => { if (e.target.tagName === "LI") lista.removeChild(e.target); };
+const tipos = ["square", "decimal", "circle", "disc"]; let ti = 0;
+document.getElementById("btnLista").onclick = () => { lista.style.listStyleType = tipos[ti++ % tipos.length]; };
+
+// g) Formulario
+const nombre = document.getElementById("nombre");
+nombre.oninput = () => document.getElementById("preview").textContent = nombre.value;
+nombre.onfocus = () => nombre.style.backgroundColor = "#ffffcc";
+nombre.onblur  = () => nombre.style.backgroundColor = "";
+nombre.onkeydown = e => { if (e.key === "Escape") nombre.value = ""; };
+document.getElementById("curso").onchange = e => mostrar("Curso elegido: " + e.target.value);
+
+document.getElementById("formulario").onsubmit = e => {
+  e.preventDefault();
+  const n = nombre.value.trim(), nota = document.getElementById("nota").value;
+  if (!n || nota === "") return mostrar("Completa nombre y calificación");
+  if (!document.getElementById("acepto").checked) return mostrar("Debes aceptar los términos");
+  // f) Tabla: insertar fila dinámicamente
+  const fila = tabla.insertRow(-1);
+  fila.insertCell(0).textContent = n;
+  fila.insertCell(1).textContent = nota;
+  fila.insertCell(2).textContent = document.getElementById("curso").value;
+  fila.cells[1].style.color = nota >= 6 ? "green" : "red";
+  e.target.reset();
+  document.getElementById("preview").textContent = "";
+  mostrar("Alumno agregado");
+};
+document.getElementById("formulario").onreset = () => mostrar("Formulario limpiado");
+
+// f) Tabla
+const tabla = document.getElementById("tabla");
+tabla.onmouseover = e => { if (e.target.tagName === "TD") e.target.parentElement.style.backgroundColor = "#cfe3ff"; };
+tabla.onmouseout  = e => { if (e.target.tagName === "TD") e.target.parentElement.style.backgroundColor = ""; };
+tabla.ondblclick  = e => { if (e.target.tagName === "TD") tabla.deleteRow(e.target.parentElement.rowIndex); };
+let grosor = 1;
+document.getElementById("btnBorde").onclick = () => {
+  grosor = grosor % 5 + 1;
+  for (const c of tabla.querySelectorAll("td, th")) c.style.border = grosor + "px solid #333";
+};
+</script>
+</body>
+</html>
